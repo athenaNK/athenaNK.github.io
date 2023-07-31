@@ -1,0 +1,543 @@
+openapi: 3.0.3 #this should be the very first line. No comments before
+#if preview not working follow this
+#https://youtrack.jetbrains.com/issue/IDEA-291069#focus=Comments-27-6003581.0-0
+info:
+  title: Open API Familiarization
+  description: |+
+    # About Us
+    ## EazyShop API
+    ### Orders - Product - Categories
+    
+    Api *created* to ***familiarize*** and **learn** 
+    the several parts of an Open `Api Specification` yaml
+    
+    ### Categories supported in the Eazy Shop
+      - Mobiles
+        - Apple
+        - Nokia
+      - Laptops
+      - TVs
+    
+    <u>*Here we can define code blocks*</u>
+    ```
+      method(){
+    }
+    ```
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+    url: https://www.example.com/support
+  license:
+    name: Eazy Shop
+    url: https://www.eazyshop.com/licenses/LICENSE-2.0.html
+servers:
+  - url: https://{environment}.example.com:{port}/v1
+    description: servers
+    variables:
+      environment:
+        default: api
+        enum:
+          - local
+          - dev
+          - production
+      port:
+        default: "8080"
+tags:
+  - name: orders
+    description: all apis related to orders
+  - name: categories
+    description: all apis related to orders
+  - name: products
+    description: all apis related to products
+
+paths:
+  /categories: # the categories api has not been constructed with components in order to keep notes of some openapi parts
+    get:
+      summary: List all the categories
+      description: Returns the list of categories supported by eazy shop
+      operationId: getCategories
+      tags:
+        - categories
+      deprecated: false
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          required: true
+          example: 10 #exmple/s and schema need to be in the same level
+
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema: # what is the return schema
+                type: array # the type of schema - since i need a list the corresponding type is array
+                items: #these are the items of the array. This is mandatory in case of array
+                  type: object #the type of the item
+                  properties: # properties contain the fields of the item and type for each property
+                    # e.g each item of the list has a categoryId (integer) and name(string)
+                    categoryId:
+                      type: integer
+                    name:
+                      type: string
+              examples:
+                all-content-data:
+                  summary: categories example data
+                  value:
+                    - categoryId: 10
+                      name: mobiles
+                    - categoryId: 20
+                      name: laptops
+                    - categoryId: 30
+                      name: tvs
+                single-category-data:
+                  summary: One category example
+                  value:
+                    - categoryId: 10
+                      name: mobiles
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+  /categories/{categoryId}:
+    get:
+      summary: Get category by id
+      description: Get category by Id
+      tags:
+        - categories
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+          examples: # examples need to have a name (that plays no role at all in the actual api)
+            # and a value.
+            # We can add a summary for each example if we want
+            mobiles:
+              summary: This is example for mobiles
+              value: 10
+            laptops:
+              value: 20
+            tvs:
+              value: 30
+      responses:
+        '200':
+          description: The category that matches the id
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categoryId:
+                    type: integer
+                  name:
+                    type: string
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+  /products:
+    get:
+      summary: List of products
+      description: Gets all the products
+      tags:
+        - products
+      parameters:
+        - $ref: "#/components/parameters/productIdQueryParam"
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+              example:
+                productId: 1
+                name: 'marika'
+                price: 10
+                categoryName: 'company'
+                quantity: 5
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+    post:
+      summary: create a new product
+      description: This api is used to create a new product
+      operationId: createProduct
+      tags:
+        - products
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                  format: double
+                categoryName:
+                  type: string
+                quantity:
+                  type: integer
+            examples:
+              mobile-product:
+                value:
+                  name: Nokia
+                  price: 100
+                  categoryName: mobile
+                  quantity: 10
+              laptop-product:
+                value:
+                  name: Dell
+                  price: 1000
+                  categoryName: laptop
+                  quantity: 100
+      responses:
+        200:
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+              example:
+                - productId: 1
+                  name: Nokia
+                  price: 100
+                  categoryName: mobile
+                  quentity: 10
+                - productId: 2
+                  name: Dell
+                  price: 1000
+                  categoryName: laptop
+                  quentity: 100
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+  /products/{productId}:
+    get:
+      summary: Get product by id
+      description: |
+        Get product by Id
+        This is description in multiple lines
+      operationId: getById
+      tags:
+        - products
+      parameters:
+        - $ref: "#/components/parameters/productIdQueryParam"
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                $ref: "#/components/schemas/Product"
+              example:
+                productId: 1
+                name: 'marika'
+                price: 10
+                categoryName: 'company'
+                quantity: 5
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+  /orders:
+    get:
+      summary: Get orders
+      description: Ger all orders
+      tags:
+        - orders
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: array
+                items:
+                  description: each order
+                  properties:
+                    orderId:
+                      type: integer
+                    products:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Product"
+                    address:
+                      $ref: "#/components/schemas/Address"
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+    post:
+      summary: Create Order
+      description: Create Order using post method
+      tags:
+        - orders
+      operationId: createOrdera
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                products:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Product"
+                address:
+                  $ref: "#/components/schemas/Address"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    orderId:
+                      type: integer
+                    products:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Product"
+                    address:
+                      $ref: "#/components/schemas/Address"
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+    put:
+      summary: Create Order
+      description: Create Order using post method
+      tags:
+        - orders
+      operationId: updateOrder
+      requestBody:
+        content:
+          'application/json':
+            schema:
+              type: object
+              properties:
+                orderId:
+                  type: integer
+                products:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Product"
+                address:
+                  $ref: "#/components/schemas/Address"
+
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    orderId:
+                      type: integer
+                    products:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Product"
+                    address:
+                      $ref: "#/components/schemas/Address"
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+  #  /video/{videoId}:
+  #    get:
+  #      description: use it to see what byte format returns
+  #      parameters:
+  #        - name: videoId
+  #          in: path
+  #          required: true
+  #          schema:
+  #            type: integer
+  #      responses:
+  #        '200':
+  #          description: the video
+  #          content:
+  #            'video/mp4':
+  #              schema:
+  #                type: string
+  #                format: binary
+
+  /orders/{orderId}:
+    get:
+      summary: Get order by id
+      description: Get order by id
+      tags:
+        - orders
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            'application/json':
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: integer
+                  products:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Product"
+                  address:
+                    $ref: "#/components/schemas/Address"
+        '400':
+          $ref: '#/components/responses/badRequest'
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+    delete:
+      summary: Delete order
+      description: |
+        Delete order by its id.
+      tags:
+        - orders
+      parameters:
+        - name: orderId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Order deleted with success
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: '#/components/responses/notFound'
+        '500':
+          $ref: '#/components/responses/serverError'
+
+components:
+  parameters:
+    productIdQueryParam:
+      name: productId
+      in: query
+      required: false
+      schema:
+        type: integer
+      example: 10
+  schemas:
+    Address:
+      type: object
+      properties:
+        addressLine:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipcode:
+          type: string
+          #if there are multiple fields that are required we can define them all in oneOf:
+      required: [ addressLine, city, zipcode ]
+    Product:
+      type: object
+      properties:
+        productId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        categoryName:
+          type: string
+        quantity:
+          type: integer
+    Mobile:
+      allOf:
+        - $ref: "#/components/schemas/Product"
+        - type: object
+          properties:
+            networkType:
+              type: string
+              enum:
+                - 5G
+                - 4G
+              required: [ networkType ]
+
+    ServerError:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        cause:
+          type: string
+  #  securitySchemes:
+  #    BasicAuth:
+  #      type: http
+  #      scheme: basic
+  #    BearerAuth:
+  #      type: http
+  #      scheme: bearer
+  #      bearerFormat: JWT
+  responses:
+    serverError:
+      description: Internal Server Error
+      content:
+        'application/json':
+          schema:
+            $ref: "#/components/schemas/ServerError"
+    badRequest:
+      description: Bad Request
+      content:
+        'application/json':
+          schema:
+            $ref: "#/components/schemas/ServerError"
+    forbidden:
+      description: Forbidden
+      content:
+        'application/json':
+          schema:
+            $ref: "#/components/schemas/ServerError"
+    notFound:
+      description: Not Found
+
